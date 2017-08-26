@@ -8,29 +8,35 @@ import ME from '@/components/ME'
 Vue.use(Router)
 Vue.use(vuex)
 export default new Router({
-  routes: [
-    {
-      path: '/',
-      name: '',
-      component: index,
-      children: [
-        {
-          path: '/',
-          redirect: 'ONE'
+  routes: [{
+    path: '/',
+    name: '',
+    component: index,
+    children: [{
+        path: '/',
+        redirect: 'ONE'
+      },
+      {
+        path: 'ONE',
+        component: ONE,
+        meta: {
+          keepAlive: true
         },
-        {
-          path: 'ONE',
-          component: ONE
+      },
+      {
+        path: 'ALL',
+        component: ALL,
+        meta: {
+          keepAlive: true
         },
-        {
-          path: 'ALL',
-          component: ALL
+      },
+      {
+        path: 'ME',
+        component: ME,
+        meta: {
+          keepAlive: true
         },
-        {
-          path: 'ME',
-          component: ME
-        }
-      ]
-    }
-  ]
+      }
+    ]
+  }]
 })

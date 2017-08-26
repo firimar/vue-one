@@ -39,13 +39,15 @@
       </div>
     </section>
     <div class="column">
-      <p class="title">一个VOL.{{datas.menu.vol}}</p>
-      <ul class="list">
-        <li v-for="(item,index) in datas.menu.list" :key="index">
-          <span>{{titles[index]}}</span>
-          <p class="text">{{item.title}}</p>
-        </li>
-      </ul>
+      <p class="title" @click="spreadView">一个VOL.{{datas.menu.vol}}</p>
+      <transition name="spread">
+        <transition-group name="flip-list" tag="ul" class="list" v-show="spread">
+          <li v-for="(item,index) in datas.menu.list" :key="index" :class="{'spreadLi':!spread}">
+            <span>{{titles[index]}}</span>
+            <p class="text">{{item.title}}</p>
+          </li>
+        </transition-group>
+      </transition>
     </div>
     <content-list :datas="datas" :titles="titles"></content-list>
   </div>
@@ -61,14 +63,17 @@ export default {
       datas: '',
       date: '',
       dataId: [],
-      titles: ["ONE STORY", "阅读", "连载", "问答", "音乐", "影视", "电台"]
+      titles: ["ONE STORY", "阅读", "连载", "问答", "音乐", "影视", "电台"],
+      spread: false
     }
   },
   components: {
     contentList
   },
   methods: {
-
+    spreadView() {
+      this.spread = !this.spread;
+    }
   },
   mounted() {
     const idlist = 'http://v3.wufazhuce.com:8000/api/onelist/idlist/?';
@@ -194,6 +199,7 @@ export default {
 }
 
 .column {
+  position: relative;
   margin-top: 0.2rem;
   line-height: 0.8rem;
   background: #fff;
@@ -206,9 +212,14 @@ export default {
   color: #ccc;
 }
 
+.column .list {
+  transition: all .4s;
+}
+
 .list>li {
   height: 1.1rem;
   padding-left: 0.82rem;
+  transition: all .4s;
 }
 
 .list>li>span {
@@ -220,5 +231,33 @@ export default {
 .list>li>.text {
   font-size: 0.26rem;
   line-height: 0.5rem;
+}
+
+.spread-enter,
+.spread-leave-to {
+  height: 0;
+}
+
+.spread-leave,
+.spread-enter-to {
+  height: 6.6rem;
+}
+
+
+
+
+
+
+
+
+
+/* .flip-list-move {
+  transition: transform 1s;
+} */
+
+.list .spreadLi {
+  position: absolute;
+  top: .3rem;
+  opacity: 0;
 }
 </style>
