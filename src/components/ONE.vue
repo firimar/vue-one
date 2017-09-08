@@ -96,13 +96,13 @@ export default {
           loop: false,
           //observer: true,
           // observeParents: true,
-          // onTouchMove: function(swiper) {
-          //   if (swiper.activeIndex == 1) {
-          //     swiper.lockSwipeToPrev();
-          //   } else {
-          //     swiper.unlockSwipeToPrev();
-          //   }
-          // },
+          onTouchMove: function(swiper) {
+            if (swiper.activeIndex == 0) {
+              swiper.lockSwipeToPrev();
+            } else {
+              swiper.unlockSwipeToPrev();
+            }
+          },
           // 如果需要分页器
           pagination: '.swiper-pagination',
 
@@ -113,20 +113,22 @@ export default {
 
           },
           onTransitionEnd: swiper => {
-            this.$store.commit('setShowDate')
+
             let v = swiper.touches.currentX - swiper.touches.startX
             let l = this.$refs.Wrap.offsetWidth / 2
-            console.log(v, l)
             if (swiper.isBeginning && v > 0 && Math.abs(v) > l) {
+              this.$store.commit('setShowDate')
               this.prevDatas()
               this.$refs.oneli.style.transform = 'translate3d(-7.5rem, 0px, 0px)'
+
               console.log("1234")
             } else if (v < 0 && Math.abs(v) > l) {
+              this.$store.commit('setShowDate')
               this.nextDatas()
               this.$refs.oneli.style.transform = 'translate3d(-7.5rem, 0px, 0px)'
               console.log("4321")
             }
-
+            swiper.activeIndex = 1
           }
         })
       }, 1000)
@@ -143,6 +145,7 @@ export default {
       })
     },
     prevDatas() {
+      this.$store.commit('getYDay')
       this.$store.commit('getNextShowIndex', -1)
       if (this.nextShowIndex == 0) {
         this.$store.commit('setNextShowI')
@@ -151,7 +154,7 @@ export default {
       }
       getDateDatas(this.nextShow[this.nextShowIndex]).then(result => {
         this.$store.commit('getCacheData', result)
-        this.$store.commit('getToDay')
+        this.$store.commit('getToDay', result)
       })
     },
     nextDatas(flag) {
@@ -161,6 +164,7 @@ export default {
         this.$store.commit('setNextShowI')
         this.$store.commit('setEmpty')
         this.showList(this.times[0], this.times[1] * 1 - 1)
+        return
       }
       getDateDatas(this.nextShow[this.nextShowIndex]).then(result => {
         this.$store.commit('getCacheData', result)
@@ -202,6 +206,24 @@ export default {
   height: 11.48rem;
   width: 7.5rem;
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

@@ -88,6 +88,12 @@ const store = new Vuex.Store({
       state.yesterDay.menu = state.oneDay.menu
       state.yesterDay.content = state.oneDay.content
     },
+    getYDay(state) {
+      state.date = state.cacheData[state.nextShowIndex].date
+      state.yesterDay.datas = state.toDay.datas
+      state.yesterDay.menu = state.toDay.menu
+      state.yesterDay.content = state.toDay.content
+    },
     getOneDay(state) {
 
       state.oneDay.datas = state.cacheData[state.nextShowIndex].content_list
