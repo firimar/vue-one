@@ -1,246 +1,206 @@
 <template>
-  <div class="ONE" v-if="datas">
-    <header class="header">
-      <div class="date">
-        <p>{{times[0]}}</p>
-        <span>/</span>
-        <p>{{times[1]}}</p>
-        <span>/</span>
-        <p>{{times[2]}}</p>
+  <div class="ONE">
+    <content-header :times="times"></content-header>
+    <div v-show="isTap" ref="Wrap" class="wrap  swiper-container">
+      <div ref="oneli" class="onewrap swiper-wrapper">
+        <div class="swiper-slide onelistwrap onelistn1" ref="onelistnext">
+          111
+          <div class="onelist">
+            <content-index :datas="todayPage"></content-index>
+            <content-menu :menu="todayMenu" :titles="title"></content-menu>
+            <content-list :datas="todayDatas" :titles="title"></content-list>
+          </div>
+        </div>
+        <div class="swiper-slide onelistwrap onelist2" ref="onelistcent">
+          222
+          <div class="onelist">
+            <content-index :datas="yesterdayPage"></content-index>
+            <content-menu :menu="yesterdayMenu" :titles="title"></content-menu>
+            <content-list :datas="yesterdayDatas " :titles="title"></content-list>
+          </div>
+        </div>
+        <div class="swiper-slide onelistwrap onelist3" ref="onelistprev">
+          <div class="onelist">
+            333
+            <content-index :datas="onedayPage"></content-index>
+            <content-menu :menu="onedayMenu" :titles="title"></content-menu>
+            <content-list :datas="onedayDatas" :titles="title"></content-list>
+          </div>
+        </div>
       </div>
-      <p class="local">
-        <span>地球</span>
-        <span>对流层</span>
-        <span>-275℃</span>
-      </p>
-    </header>
-    <section class="content">
-      <div class="illustr">
-        <img class="picture" :src="datas.content_list[0].img_url" alt="">
-        <p class="name">{{datas.content_list[0].title}}
-          <span>|</span>{{datas.content_list[0].pic_info}}</p>
-        <p class="text">{{datas.content_list[0].forward}}</p>
-        <p class="author">{{datas.content_list[0].words_info}}</p>
-      </div>
-      <div class="fn">
-        <p class="reporter">
-          <img src="../assets/img/note_dark@2x.png" alt="">小记
-        </p>
-        <p class="share">
-          <img src="../assets/img/share_gray@2x.png" alt="">
-        </p>
-        <p class="collect">
-          <img src="../assets/img/collect_gray@2x.png" alt="">
-        </p>
-        <p class="great">
-          <img src="../assets/img/like_gray@2x.png" alt="">
-          <span>{{datas.content_list[0].like_count}}</span>
-        </p>
-      </div>
-    </section>
-    <div class="column">
-      <p class="title" @click="spreadView">一个VOL.{{datas.menu.vol}}</p>
-      <transition name="spread">
-        <transition-group name="flip-list" tag="ul" class="list" v-show="spread">
-          <li v-for="(item,index) in datas.menu.list" :key="index" :class="{'spreadLi':!spread}">
-            <span>{{titles[index]}}</span>
-            <p class="text">{{item.title}}</p>
-          </li>
-        </transition-group>
-      </transition>
+      <div class="swiper-pagination"></div>
     </div>
-    <content-list :datas="datas" :titles="titles"></content-list>
+    <div class="swiper-pagination"></div>
   </div>
 </template>
+
 <script>
 
+import { mapGetters, mapState, mapMutations, mapActions } from 'vuex'
+import { getMenuList, getNowDatas, getDateDatas } from '@/assets/api/getdata'
+import scroll from '@/base/scroll/scroll';
+import contentHeader from './contentheader';
+import contentIndex from './contentIndex';
+import contentMenu from './contentMenu';
 import contentList from './contentlist';
+import '@/assets/css/swiper-3.4.2.min.css';
+import '@/assets/js/swiper-3.4.2.min.js';
+
 export default {
   name: 'ONE',
-
   data() {
     return {
-      datas: '',
-      date: '',
-      dataId: [],
-      titles: ["ONE STORY", "阅读", "连载", "问答", "音乐", "影视", "电台"],
-      spread: false
     }
   },
   components: {
-    contentList
-  },
-  methods: {
-    spreadView() {
-      this.spread = !this.spread;
-    }
-  },
-  mounted() {
-    const idlist = 'http://v3.wufazhuce.com:8000/api/onelist/idlist/?';
-    fetch(idlist).then(response => {
-      return response.json();
-    }).then(result => {
-      this.dataId = (result.data)
-      let url = 'http://v3.wufazhuce.com:8000/api/onelist/' + this.dataId[0] + '/0?';
-      fetch(url).then(response => {
-        return response.json();
-      }).then(result => {
-        this.datas = result.data
-        this.date = result.data.weather.date
-      })
-    })
+
+    scroll,
+    contentHeader,
+    contentIndex,
+    contentMenu,
+    contentList,
   },
   computed: {
-    times() {
-      return this.date.split('-')
-    }
-  }
+
+    ...mapGetters([
+      'times',
+      'todayDatas',
+      'onedayDatas',
+      'yesterdayDatas'
+    ]),
+    ...mapState({
+      date: state => state.date,
+      todayPage: state => state.toDay.content,
+      onedayPage: state => state.oneDay.content,
+      yesterdayPage: state => state.yesterDay.content,
+      todayMenu: state => state.toDay.menu,
+      onedayMenu: state => state.oneDay.menu,
+      yesterdayMenu: state => state.yesterDay.menu,
+      title: state => state.titles,
+      isTap: state => state.isTap,
+      nextShow: state => state.nextShow,
+      nextShowIndex: state => state.nextShowIndex,
+      cacheData: state => state.cacheData,
+      topBarList: state => state.topBarList
+    }),
+  },
+  created() {
+    getNowDatas().then(result => {
+      this.$store.commit('getToDay', result)
+      this.$store.commit('getCacheData', result)
+      this.showList(this.times[0], this.times[1])
+      setTimeout(() => {
+        this.nextDatas(true)
+        var mySwiper = new Swiper('.swiper-container', {
+          direction: 'horizontal',
+          loop: false,
+          //observer: true,
+          // observeParents: true,
+          // onTouchMove: function(swiper) {
+          //   if (swiper.activeIndex == 1) {
+          //     swiper.lockSwipeToPrev();
+          //   } else {
+          //     swiper.unlockSwipeToPrev();
+          //   }
+          // },
+          // 如果需要分页器
+          pagination: '.swiper-pagination',
+
+          onSlideChangeStart: swiper => {
+
+          },
+          onSlideChangeEnd: swiper => {
+
+          },
+          onTransitionEnd: swiper => {
+            this.$store.commit('setShowDate')
+            let v = swiper.touches.currentX - swiper.touches.startX
+            let l = this.$refs.Wrap.offsetWidth / 2
+            console.log(v, l)
+            if (swiper.isBeginning && v > 0 && Math.abs(v) > l) {
+              this.prevDatas()
+              this.$refs.oneli.style.transform = 'translate3d(-7.5rem, 0px, 0px)'
+              console.log("1234")
+            } else if (v < 0 && Math.abs(v) > l) {
+              this.nextDatas()
+              this.$refs.oneli.style.transform = 'translate3d(-7.5rem, 0px, 0px)'
+              console.log("4321")
+            }
+
+          }
+        })
+      }, 1000)
+
+    })
+  },
+  mounted() {
+  },
+  methods: {
+    showList(years, month) {
+      getMenuList(years, month).then(result => {
+        this.$store.commit('getTopBarList', result)
+        this.$store.commit('getNextShow')
+      })
+    },
+    prevDatas() {
+      this.$store.commit('getNextShowIndex', -1)
+      if (this.nextShowIndex == 0) {
+        this.$store.commit('setNextShowI')
+        this.$store.commit('setEmpty')
+        this.showList(this.times[0], this.times[1] * 1 + 1)
+      }
+      getDateDatas(this.nextShow[this.nextShowIndex]).then(result => {
+        this.$store.commit('getCacheData', result)
+        this.$store.commit('getToDay')
+      })
+    },
+    nextDatas(flag) {
+      this.$store.commit('getYesterDay')
+      this.$store.commit('getNextShowIndex', 1)
+      if (this.nextShowIndex > this.nextShow.length - 1) {
+        this.$store.commit('setNextShowI')
+        this.$store.commit('setEmpty')
+        this.showList(this.times[0], this.times[1] * 1 - 1)
+      }
+      getDateDatas(this.nextShow[this.nextShowIndex]).then(result => {
+        this.$store.commit('getCacheData', result)
+        this.$store.commit('getOneDay')
+        if (flag) {
+          this.$store.commit('getYesterDay')
+        }
+      })
+    },
+  },
 }
+
 </script>
-
 <style scoped>
-.header {
-  height: 1.28rem;
+.ONE {
   width: 7.5rem;
-  background: #fff;
-}
-
-.header .date {
-  font-size: 0.4rem;
-  line-height: 0.76rem;
-  text-align: center;
-}
-
-.header .date>p {
-  display: inline-block;
-}
-
-.header .local {
-  text-align: center;
-  font-size: 0.12rem;
-}
-
-.content {
-  background: #fff;
-  height: auto;
-}
-
-.content .picture {
-  width: 100%;
-}
-
-.content .name {
-  text-align: center;
-  font-size: 0.24rem;
-  line-height: 0.7rem;
-  color: #ccc;
-}
-
-.content .name>span {
-  margin: 0 5px
-}
-
-.content .text {
-  width: 5.9rem;
-  margin: 0.26rem 0.8rem 0;
-  font-size: 0.28rem;
-  line-height: 0.56rem;
-}
-
-.content .author {
-  text-align: center;
-  font-size: 0.24rem;
-  line-height: 0.96rem;
-  color: #ccc;
-}
-
-.fn {
-  margin-top: 0.24rem;
-  height: 0.74rem;
-  font-size: 0.22rem;
   overflow: hidden;
 }
 
-.fn>p {
-  color: #ccc;
-  float: right;
-  height: 0.4rem;
+.wrap {
+  position: fixed;
+  top: 0.88rem;
+  left: 0rem;
+  bottom: 0.98rem;
+  width: 7.5rem;
+  overflow: hidden;
 }
 
-.fn>p>img {
-  width: 0.32rem;
-  height: 0.32rem;
-}
-
-.fn .reporter {
-  float: left;
-  padding-left: 0.5rem;
-}
-
-.fn .great {
-  width: 1rem;
+.onewrap {
   position: relative;
+  width: 22.5rem;
+  transition: transform 0.5s ease-out;
 }
 
-.fn .collect {
-  margin: 0 0.3rem
-}
-
-.fn .share {
-  margin: 0 0.3rem
-}
-
-.fn .great>span {
-  position: absolute;
+.onelistwrap {
+  /* position: absolute;
   top: 0;
-  font-size: 0.12rem;
-  line-height: 1;
-  color: #ccc;
-}
-
-.column {
-  position: relative;
-  margin-top: 0.2rem;
-  line-height: 0.8rem;
-  background: #fff;
-}
-
-.column .title {
-  text-align: center;
-  height: 0.8rem;
-  font-size: 0.26rem;
-  color: #ccc;
-}
-
-.column .list {
-  transition: all .4s;
-}
-
-.list>li {
-  height: 1.1rem;
-  padding-left: 0.82rem;
-  transition: all .4s;
-}
-
-.list>li>span {
-  font-size: 0.24rem;
-  line-height: 0.28rem;
-  display: block;
-}
-
-.list>li>.text {
-  font-size: 0.26rem;
-  line-height: 0.5rem;
-}
-
-.spread-enter,
-.spread-leave-to {
-  height: 0;
-}
-
-.spread-leave,
-.spread-enter-to {
-  height: 6.6rem;
+  overflow: hidden; */
+  height: 11.48rem;
+  width: 7.5rem;
 }
 
 
@@ -251,13 +211,244 @@ export default {
 
 
 
-/* .flip-list-move {
-  transition: transform 1s;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* .onelist1 {
+  left: 0rem;
+}
+
+.onelist2 {
+  left: 7.5rem;
+}
+
+.onelist3 {
+  left: 15rem
 } */
-
-.list .spreadLi {
-  position: absolute;
-  top: .3rem;
-  opacity: 0;
-}
 </style>

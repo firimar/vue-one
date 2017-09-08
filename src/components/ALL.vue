@@ -38,13 +38,13 @@ export default {
 .header {
   position: relative;
   text-align: center;
-  padding-top: 0.5rem;
   width: 100%;
-  height: 0.78rem;
+  height: 0.88rem;
   background: #fefefe;
 }
 
 .header img {
+  padding-top: 0.3rem;
   width: 2.68rem;
   height: 0.28rem;
 }
@@ -52,7 +52,7 @@ export default {
 .header>span {
   position: absolute;
   right: 0.35rem;
-  top: 0.4rem;
+  top: 0.28rem;
   width: 0.4rem;
   height: 0.4rem;
   background: url(../assets/img/search_gray@2x.png) no-repeat;
