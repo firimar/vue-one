@@ -15,9 +15,7 @@
   "dependencies": {
     "better-scroll": "^1.2.3",
     "fetch-polyfill": "^0.8.2",
-    "mint-ui": "^2.2.9",
     "vue": "^2.3.3",
-    "vue-awesome-swiper": "^2.6.2",
     "vue-router": "^2.6.0",
     "vuex": "^2.3.1"
   },

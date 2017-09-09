@@ -61,7 +61,7 @@ const store = new Vuex.Store({
     },
     getCacheData(state, result) {
       let a = false;
-      if (state.cacheData.length > 0) {
+      if (state.cacheData.length) {
         state.cacheData.forEach(item => {
           if (item.date === result.data.date) {
             a = true
@@ -71,9 +71,6 @@ const store = new Vuex.Store({
       if (!a) {
         state.cacheData.push(result.data)
       }
-      let n = state.cacheData[state.nextShowIndex].content_list.length - 1
-      state.radioSrc = state.cacheData[state.nextShowIndex].content_list[n].audio_url
-      state.defaultAudios = state.cacheData[state.nextShowIndex].content_list[n].default_audios || '#'
     },
     getToDay(state, result) {
       state.date = result.data.date
@@ -83,26 +80,63 @@ const store = new Vuex.Store({
       state.toDay.content = result.data.content_list[0]
     },
     getYesterDay(state) {
-      state.date = state.cacheData[state.nextShowIndex].date
       state.yesterDay.datas = state.oneDay.datas
       state.yesterDay.menu = state.oneDay.menu
       state.yesterDay.content = state.oneDay.content
     },
-    getYDay(state) {
-      state.date = state.cacheData[state.nextShowIndex].date
+    getOneDay(state) {
+      state.oneDay.datas = state.cacheData[state.nextShowIndex].content_list
+      state.oneDay.menu = state.cacheData[state.nextShowIndex].menu
+      state.oneDay.content = state.cacheData[state.nextShowIndex].content_list[0]
+      let n = state.cacheData[state.nextShowIndex].content_list.length - 1
+      state.radioSrc = state.cacheData[state.nextShowIndex].content_list[n].audio_url
+      state.defaultAudios = state.cacheData[state.nextShowIndex].content_list[n].default_audios
+    },
+    setPrev(state) {
+      state.toDay.datas = state.cacheData[state.nextShowIndex].content_list
+      state.toDay.menu = state.cacheData[state.nextShowIndex].menu
+      state.toDay.content = state.cacheData[state.nextShowIndex].content_list[0]
+      let n = state.cacheData[state.nextShowIndex].content_list.length - 1
+      state.radioSrc = state.cacheData[state.nextShowIndex].content_list[n].audio_url
+      state.defaultAudios = state.cacheData[state.nextShowIndex].content_list[n].default_audios
+    },
+    setYDay(state) {
       state.yesterDay.datas = state.toDay.datas
       state.yesterDay.menu = state.toDay.menu
       state.yesterDay.content = state.toDay.content
     },
-    getOneDay(state) {
-
-      state.oneDay.datas = state.cacheData[state.nextShowIndex].content_list
-      state.oneDay.menu = state.cacheData[state.nextShowIndex].menu
-      state.oneDay.content = state.cacheData[state.nextShowIndex].content_list[0]
-
+    setP(state, res) {
+      var n = 0
+      state.cacheData.forEach((item, index) => {
+        let d = item.date.substr(0, 10)
+        if (d == res) {
+          n = index - 1
+          n = n <= 0 ? 0 : n
+          state.toDay.datas = state.cacheData[n].content_list
+          state.toDay.menu = state.cacheData[n].menu
+          state.toDay.content = state.cacheData[n].content_list[0]
+        }
+      })
     },
-    setShowDate(state) {
-      state.showDate = state.cacheData[state.nextShowIndex].date
+    setN(state, res) {
+      var n = 0
+      state.cacheData.forEach((item, index) => {
+        let d = item.date.substr(0, 10)
+        if (d == res) {
+          n = index
+          state.oneDay.datas = state.cacheData[n].content_list
+          state.oneDay.menu = state.cacheData[n].menu
+          state.oneDay.content = state.cacheData[n].content_list[0]
+        }
+      })
+    },
+    setShowDate(state, res) {
+      if (res) {
+        state.showDate = state.cacheData[state.nextShowIndex - 1].date
+      } else {
+        state.showDate = state.cacheData[state.nextShowIndex].date
+      }
+
     },
     getTopBarList(state, result) {
       state.topBarList.push(result.data)
@@ -110,15 +144,24 @@ const store = new Vuex.Store({
     },
     setEmpty(state) {
       state.topBarList = []
-      state.nextShow = []
+      //state.nextShow = []
     },
     getNextShow(state) {
+      let date = new Date()
+      let d = date.toLocaleDateString().split('/')
+      d[1] = d[1] < 10 ? '0' + d[1] : "" + d[1]
+      d[2] = d[2] < 10 ? '0' + d[2] : "" + d[2]
+      d = d.join('-')
+      let h = date.getHours()
       state.topBarList.forEach(item => {
         item.forEach(el => {
           state.nextShow.push(el.date)
           state.nextShow = [...new Set(state.nextShow)]
         })
       });
+      if (state.nextShow[0] === d && h < 6) {
+        state.nextShow.shift()
+      }
     },
     setNextShowIndex(state) {
       let n = state.showDate.substr(0, 10)
@@ -130,9 +173,11 @@ const store = new Vuex.Store({
     },
     getNextShowIndex(state, num) {
       state.nextShowIndex = state.nextShowIndex + num
+      state.nextShowIndex = state.nextShowIndex <= 0 ? 0 : state.nextShowIndex
+      console.log(state.nextShowIndex, 'num')
     },
     setNextShowI(state) {
-      state.nextShowIndex = 0
+      //state.nextShowIndex++
     },
     getAudioSrc(state) {
 

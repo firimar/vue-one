@@ -3,34 +3,29 @@
     <content-header :times="times"></content-header>
     <div v-show="isTap" ref="Wrap" class="wrap  swiper-container">
       <div ref="oneli" class="onewrap swiper-wrapper">
-        <div class="swiper-slide onelistwrap onelistn1" ref="onelistnext">
-          111
+        <scroll class="swiper-slide onelistwrap" ref="scrollT">
           <div class="onelist">
             <content-index :datas="todayPage"></content-index>
             <content-menu :menu="todayMenu" :titles="title"></content-menu>
             <content-list :datas="todayDatas" :titles="title"></content-list>
           </div>
-        </div>
-        <div class="swiper-slide onelistwrap onelist2" ref="onelistcent">
-          222
-          <div class="onelist">
+        </scroll>
+        <scroll class="swiper-slide onelistwrap" ref="scrollY">
+          <div class="onelist" ref="oneList">
             <content-index :datas="yesterdayPage"></content-index>
             <content-menu :menu="yesterdayMenu" :titles="title"></content-menu>
             <content-list :datas="yesterdayDatas " :titles="title"></content-list>
           </div>
-        </div>
-        <div class="swiper-slide onelistwrap onelist3" ref="onelistprev">
+        </scroll>
+        <div class="swiper-slide onelistwrap">
           <div class="onelist">
-            333
             <content-index :datas="onedayPage"></content-index>
             <content-menu :menu="onedayMenu" :titles="title"></content-menu>
             <content-list :datas="onedayDatas" :titles="title"></content-list>
           </div>
         </div>
       </div>
-      <div class="swiper-pagination"></div>
     </div>
-    <div class="swiper-pagination"></div>
   </div>
 </template>
 
@@ -50,6 +45,7 @@ export default {
   name: 'ONE',
   data() {
     return {
+      first: true
     }
   },
   components: {
@@ -91,45 +87,36 @@ export default {
       this.showList(this.times[0], this.times[1])
       setTimeout(() => {
         this.nextDatas(true)
+        this.$refs.scrollT.refresh()
         var mySwiper = new Swiper('.swiper-container', {
           direction: 'horizontal',
           loop: false,
+          speed: 200,
           //observer: true,
           // observeParents: true,
           onTouchMove: function(swiper) {
-            if (swiper.activeIndex == 0) {
+            if (swiper.activeIndex == 0 || swiper.activeIndex == 2) {
               swiper.lockSwipeToPrev();
             } else {
               swiper.unlockSwipeToPrev();
             }
           },
-          // 如果需要分页器
-          pagination: '.swiper-pagination',
-
-          onSlideChangeStart: swiper => {
-
-          },
-          onSlideChangeEnd: swiper => {
-
-          },
           onTransitionEnd: swiper => {
-
             let v = swiper.touches.currentX - swiper.touches.startX
-            let l = this.$refs.Wrap.offsetWidth / 2
-            if (swiper.isBeginning && v > 0 && Math.abs(v) > l) {
+            let l = this.$refs.Wrap.offsetWidth
+            if (swiper.isBeginning && v > 0 && Math.abs(v) > l / 2) {
               this.$store.commit('setShowDate')
               this.prevDatas()
-              this.$refs.oneli.style.transform = 'translate3d(-7.5rem, 0px, 0px)'
-
-              console.log("1234")
-            } else if (v < 0 && Math.abs(v) > l) {
+            } else if (v < 0 && Math.abs(v) > l / 2) {
               this.$store.commit('setShowDate')
               this.nextDatas()
-              this.$refs.oneli.style.transform = 'translate3d(-7.5rem, 0px, 0px)'
-              console.log("4321")
+
             }
             swiper.activeIndex = 1
-          }
+            this.$refs.oneli.style.transform = 'translate3d(-' + l + 'px, 0px, 0px)'
+            this.$refs.oneList.style.transform = 'transform:translate(0px, 0px)translateZ(0px)'
+            this.$refs.scrollY.refresh()
+          },
         })
       }, 1000)
 
@@ -145,26 +132,19 @@ export default {
       })
     },
     prevDatas() {
-      this.$store.commit('getYDay')
+      this.$store.commit('setYDay')
       this.$store.commit('getNextShowIndex', -1)
-      if (this.nextShowIndex == 0) {
-        this.$store.commit('setNextShowI')
-        this.$store.commit('setEmpty')
-        this.showList(this.times[0], this.times[1] * 1 + 1)
-      }
-      getDateDatas(this.nextShow[this.nextShowIndex]).then(result => {
-        this.$store.commit('getCacheData', result)
-        this.$store.commit('getToDay', result)
-      })
+      this.$store.commit('setPrev')
+      this.$store.commit('setP', this.nextShow[this.nextShowIndex - 1])
+      this.$store.commit('setN', this.nextShow[this.nextShowIndex])
+      this.$store.commit('setShowDate', true)
     },
     nextDatas(flag) {
       this.$store.commit('getYesterDay')
+      this.$store.commit('setP', this.nextShow[this.nextShowIndex])
       this.$store.commit('getNextShowIndex', 1)
-      if (this.nextShowIndex > this.nextShow.length - 1) {
-        this.$store.commit('setNextShowI')
-        this.$store.commit('setEmpty')
+      if (this.nextShowIndex == this.nextShow.length - 1) {
         this.showList(this.times[0], this.times[1] * 1 - 1)
-        return
       }
       getDateDatas(this.nextShow[this.nextShowIndex]).then(result => {
         this.$store.commit('getCacheData', result)
@@ -198,135 +178,6 @@ export default {
   width: 22.5rem;
   transition: transform 0.5s ease-out;
 }
-
-.onelistwrap {
-  /* position: absolute;
-  top: 0;
-  overflow: hidden; */
-  height: 11.48rem;
-  width: 7.5rem;
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -473,4 +324,12 @@ export default {
 .onelist3 {
   left: 15rem
 } */
+
+.onelistwrap {
+  /* position: absolute;
+  top: 0;
+  overflow: hidden; */
+  height: 11.48rem;
+  width: 7.5rem;
+}
 </style>
